@@ -1,0 +1,35 @@
+# Core
+torch==1.11.0
+torchvision==0.12.0
+numpy==1.19.2
+
+# Image processing
+Pillow
+opencv-python==4.1.2.30
+albumentations==0.4.3
+imageio==2.9.0
+imageio-ffmpeg==0.4.2
+kornia==0.6
+
+# Diffusion / watermark
+diffusers
+invisible-watermark
+
+# Training & utilities
+pytorch-lightning==1.4.2
+omegaconf==2.1.1
+einops==0.3.0
+torchmetrics==0.6.0
+torch-fidelity==0.3.0
+test-tube>=0.7.5
+pudb==2019.2
+streamlit>=0.73.1
+
+# CLIP / NLP
+transformers==4.19.2
+ftfy
+regex
+
+# External repositories
+git+https://github.com/CompVis/taming-transformers.git
+git+https://github.com/openai/CLIP.git
