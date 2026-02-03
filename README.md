@@ -1,128 +1,123 @@
-MU-PP Mark
-Enhancing Traceability in Multi-User Diffusion Models via Prompt Perturbation Watermarking
+# MU-PP Mark
 
-📄 Official PyTorch implementation of the paper:
-“Enhancing Traceability in Multi-User Diffusion Models via Prompt Perturbation Watermarking”
+This repository provides a **generation-time watermarking framework for Stable Diffusion**, together with a **watermark extraction and detection pipeline**.
 
-🔍 Overview
-MU-PP Mark is an implicit multi-user watermarking framework designed for text-to-image diffusion models (e.g., Stable Diffusion).
-It enables reliable user attribution and provenance tracing of generated images without modifying model architectures or parameters.
+The code supports:
 
-Key idea
-Instead of embedding watermarks into pixels or model weights, MU-PP Mark:
+- Watermark embedding during image generation  
+- Dataset-level watermark generation  
+- Single-image watermark injection  
+- CLIP-based watermark extraction and identification  
 
-Injects user-specific watermark tensors into the prompt embedding space
-Propagates identity information throughout the diffusion process
-Recovers ownership using contrastive learning–based image–watermark matching
-Fetched content
+---
 
-✨ Features
-✅ Multi-user attribution (scales to dozens or hundreds of users)
-✅ No modification to diffusion model weights
-✅ Prompt-perturbation based implicit watermarking
-✅ High robustness to compression, noise, blur, and color attacks
-✅ High image fidelity (PSNR 37.01 dB @ α = 0.2)
-✅ 99% Top-1 identification accuracy
-📁 Repository Structure
-stable-diffusion/
-├── 1.watermark-injection/
-│   ├── single-marking.py        # Generate a single watermarked image
-│   ├── dataset-marking.py       # Generate large-scale watermarked dataset
-│   ├── watermark_tensor.py      # Watermark tensor generation
-│   └── watermarks.pt            # Pre-generated watermark tensors
-│
-├── 2.train/
-│   ├── train.py                 # Contrastive training script
-│   ├── dataset.py               # Dataset loader
-│   ├── img_encoder.py           # Image encoder (ResNet-based)
-│   ├── watermark_encoder.py     # Watermark encoder ([77, 768] tensor)
-│   └── clip.py                  # CLIP-based text encoder wrapper
-│
-└── 3.watermark_retrieval.py     # Watermark detection / user attribution
-Each folder corresponds to a stage in the MU-PP Mark pipeline:
+## 1. Environment Setup
 
-Watermark embedding
-Multi-user contrastive training
-Watermark detection
-⚙️ Installation
-Requirements
-Python ≥ 3.10
-PyTorch ≥ 2.0
-CUDA-enabled GPU recommended
-Install dependencies:
+### 1.1 Requirements
 
+- Python 3.8  
+- CUDA 11.3 (recommended)  
+- NVIDIA GPU (strongly recommended)
+
+### 1.2 Install Dependencies
+
+Create and activate a virtual environment (recommended):
+
+```bash
+conda create -n ldm python=3.8
+conda activate ldm
 pip install -r requirements.txt
-Example requirements.txt:
+``` 
 
-torch>=2.0
-torchvision
-diffusers
-transformers
-numpy
-opencv-python
-lpips
-tqdm
-🚀 Usage
-1️⃣ Watermark Embedding
-Generate a single watermarked image
-python 1.watermark-injection/single-marking.py \
-  --prompt "A photo of a mountain landscape" \
-  --user_id 0 \
-  --alpha 0.2
-Generate a watermarked dataset
-python 1.watermark-injection/dataset-marking.py \
-  --num_users 10 \
-  --num_prompts 1000 \
-  --alpha 0.2
-α (watermark strength) controls the trade-off between image quality and watermark detectability.
-Based on our experiments, α = 0.2 provides the best balance.
 
-2️⃣ Contrastive Training
-Train the multi-user watermark retrieval model:
+## 2. Project Structure
 
-python 2.train/train.py \
-  --batch_size 10 \
-  --num_users 10 \
-  --lr 1e-3 \
-  --epochs 100
-⚠️ Important:
-The training batch size must equal the number of users, as each batch contains exactly one watermark per user.
+```text
+stable-diffusion/
+├── 1.watermark-injectiondataset-marking/     
+│   └── dataset-marking               # Dataset-level watermark generation ，Users can design their own dataset construction  
+│   └──single-marking/                # Single-image watermark injection
+│   └──watermarks.pt                  # Stored watermark templates
+│   └── model.pth                     # Trained watermark detection model
+│
+├── train/                            # Watermark detector training and inference
+│   ├── train.py
+│   ├── inference.py
+│   └── ...
+│
+│
+├── requirements.txt
+└── README.md
+``` 
+## 3. Dataset-level Watermark Generation
 
-3️⃣ Watermark Detection (User Attribution)
-Identify the source user of a generated image:
+The `dataset-marking/` module is used to generate **watermarked datasets** for training or evaluation.
 
-python 3.watermark_retrieval.py \
-  --image_path example.png
-The script outputs the user ID with the highest cosine similarity.
+This part is **fully customizable**: users can design their own dataset structure, watermark content, and embedding strategy according to their needs.
 
-📊 Experimental Results
-Metric	Value
-Top-1 Accuracy	0.99
-PSNR	37.01 dB
-SSIM	0.93
-LPIPS	0.04
-Strong intra-class compactness (≈ 0.25)
-Clear inter-class separation (≈ 0.70)
-Robust against JPEG compression, blur, noise, and color distortions
-🔁 Reproducibility Notes
-Watermark tensors are provided in watermarks.pt
-Random seeds can be fixed in watermark_tensor.py
-All experiments were conducted with Stable Diffusion + CLIP text encoder
-📜 License
-This project is released under the MIT License.
-See LICENSE for details.
+### Usage
 
-📖 Citation
-If you find this work useful, please cite:
+1. Prepare your prompt.
+2. Implement or modify the watermark embedding logic inside `dataset-marking/`.
+3. Run the corresponding script to generate a watermarked dataset.
 
-@article{shi2025muppmark,
-  title={Enhancing Traceability in Multi-User Diffusion Models via Prompt Perturbation Watermarking},
-  author={Shi, Hui and Wang, Yuchen and Jin, Conghui and Liu, Mingyang},
-  journal={},
-  year={2025}
-}
-🙏 Acknowledgements
-This work was supported by:
+> **Note:**  
+> This module is intended for large-scale data generation. The watermark design and dataset format are left to the user for flexibility.
 
-Liaoning Provincial Science and Technology Joint Plan (No. 2025-MSLH-435)
-National Natural Science Foundation of China (Grant No. 61601214)
+---
+## 4. Single-image Watermark Injection
+
+The `single-marking/` module is designed for embedding a watermark into **a single image**.
+
+This is useful for:
+- Demonstrations
+- Ablation studies
+- Qualitative visualization
+
+### Usage
+
+```bash
+python single-marking.py
+``` 
+## 5. Training the Watermark Detector
+
+The watermark detector is trained using watermarked images generated by the dataset-level .
+
+### 5.1 Data Preparation
+
+Before training, prepare a dataset containing:
+- Watermarked images
+- Corresponding watermark labels or indices
+
+The dataset format follows the implementation inside the `train/` directory.  
+Users may customize the dataset organization if needed.
+
+---
+
+### 5.2 Training
+
+To start training the watermark detector, run:
+
+```bash
+cd train
+python train.py
+
+```
+## 6. Watermark Detection (Inference)
+
+After training, the watermark detector can be used to identify the embedded watermark from a given image.
+
+### 6.1 Inference
+
+To run watermark detection on a single image, execute:
+
+```bash
+cd train
+python inference.py --image path/to/image.png
+
+
+
+
+
+
+
